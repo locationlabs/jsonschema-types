@@ -80,14 +80,19 @@ class TypeFactory(object):
         """
         return str(underscore(property_name))
 
-    def make_class(self, schema_id):
+    def make_class(self, schema_id, bases=(SchemaDict,)):
         """
         Create a Python class that maps to the given schema.
+
+        :param bases: a tuple of bases; should be compatible with `SchemaDict`
         """
+        DESCRIPTION = u"description"
+        PROPERTIES = u"properties"
+        REQUIRED = u"required"
+
         schema = self.registry[schema_id]
 
         class_name = self.class_name_for(schema_id)
-        bases = (SchemaDict,)
 
         # save schema id and registry instance within the class definition
         attributes = dict(
@@ -95,10 +100,17 @@ class TypeFactory(object):
             _REGISTRY=self.registry,
         )
 
+        if DESCRIPTION in schema:
+            attributes["__doc__"] = schema[DESCRIPTION]
+
         # inject attributes for each property
         attributes.update({
-            self.attribute_name_for(property_name): Attribute(property_name)
-            for property_name in schema.get("properties", {})
+            self.attribute_name_for(property_name): Attribute(
+                property_name,
+                description=property_.get(DESCRIPTION),
+                required=property_name in schema.get(REQUIRED, [])
+            )
+            for property_name, property_ in schema.get(PROPERTIES, {}).items()
         })
 
         return type(class_name, bases, attributes)

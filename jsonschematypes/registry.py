@@ -117,7 +117,8 @@ class Registry(dict):
 
         Schemas must define an `id` attribute.
         """
-        schema_id = schema["id"]
+        ID = u"id"
+        schema_id = schema[ID]
         self[schema_id] = schema
         return schema_id
 
@@ -134,7 +135,7 @@ class Registry(dict):
         """
         Iterate through all refs in a schema.
         """
-        REF = "$ref"
+        REF = u"$ref"
         if REF in schema:
             yield schema[REF]
         for property_ in schema.get("properties", {}).values():
