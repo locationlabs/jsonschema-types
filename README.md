@@ -1,8 +1,6 @@
 # jsonschema-types
 
-[JSON Schema][1] type generator.
-
- [1]: http://json-schema.org/
+[JSON Schema](http://json-schema.org/) type generator.
 
 ## Why?
 
@@ -91,16 +89,18 @@ schemas:
 
 ## Related Work
 
-The [Warlock]() and [python-jsonschema-objects]() also provide type generation for
-JSON Schema. `jsonschema-types` makes a few decisions differently:
+The [Warlock](https://github.com/bcwaldon/warlock) and
+[python-jsonschema-objects](https://github.com/cwacek/python-jsonschema-objects) also provide
+type generation for JSON Schema. `jsonschema-types` makes a few decisions differently:
 
  -  Generated types do not validate themselves automatically; the `validate()` method must
     be called explicitly. There are many testing scenarios where it useful to be able to
     generate invalid data.
 
  -  Similar to `Warlock`, generated types are backed by a Python dictionary. Unlike `Warlock`,
-    generated types use the [descriptor]() protocol to map between attributes and dictionary
-    keys and maps other naming conventions (e.g. "fooBar") to more Pythonic ones (e.g. "foo_bar").
+    generated types use the [descriptor]( https://docs.python.org/2/howto/descriptor.html)
+    protocol to map between attributes and dictionary keys and maps other naming conventions
+    (e.g. "fooBar") to more Pythonic ones (e.g. "foo_bar").
 
     `jsonschema-types` also does not track changes to underlying objects (to generate
     patches), though this is an intriguing feature.
@@ -108,8 +108,3 @@ JSON Schema. `jsonschema-types` makes a few decisions differently:
  -  `python-jsonschema-objects` also provides a mechanism for bypassing runtime URI resolution
     over HTTP(S), using a custom "memory" URI schema. `jsonschema-types` instead preserves HTTP
     URIs, but ensures that HTTP(S) results are cached in advance.
-
-
- [Warlock]: https://github.com/bcwaldon/warlock
- [python-jsonschema-objects]: https://github.com/cwacek/python-jsonschema-objects
- [descriptor]: https://docs.python.org/2/howto/descriptor.html
