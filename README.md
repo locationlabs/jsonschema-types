@@ -2,6 +2,8 @@
 
 [JSON Schema](http://json-schema.org/) type generator.
 
+[![Build Status](https://travis-ci.org/locationlabs/jsonschema-types.png)](https://travis-ci.org/locationlabs/jsonschema-types)
+
 ## Why?
 
 JSON Schema is a powerful tool for data validation, but is not a perfect fit
