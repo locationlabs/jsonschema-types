@@ -1,0 +1,21 @@
+{
+    "id": "http://x.y.z/bar/address",
+    "properties": {
+	"street": {
+	    "type": "string"
+	},
+	"city": {
+	    "type": "string"
+	},
+	"state": {
+	    "type": "string"
+	},
+	"zip": {
+	    "type": "string"
+	},
+	"country": {
+	    "type": "string"
+	}
+    },
+    "required": ["street", "city", "state"]
+}

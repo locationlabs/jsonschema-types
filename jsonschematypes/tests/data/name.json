@@ -1,0 +1,15 @@
+{
+    "id": "http://x.y.z/foo/name",
+    "properties": {
+	"first": {
+	    "type": "string"
+	},
+	"middle": {
+	    "type": "string"
+	},
+	"last": {
+	    "type": "string"
+	}
+    },
+    "required": ["first", "last"]
+}
