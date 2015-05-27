@@ -1,0 +1,14 @@
+language: python
+python:
+- '2.7'
+- '3.3'
+install: pip install . --use-mirrors
+script: python setup.py nosetests
+deploy:
+  provider: pypi
+  user: jessemyers
+  on:
+    tags: true
+    repo: locationlabs/jsonschema-types
+  password:
+    secure: YoVe0VwjagLqWI+On5wr+aIdiHaL0KHD1+cC7DSeg5DJPz2RQn8SDuVXuAsl5WyTwEwh7ES8wcuz3r1uMjxCBNWX94VSmuU2Xp6GFwwnBP/AHuTLKZiJAS65Hlazcyvk1m+l5DNlkXamWN7fY9dNDH1U5YoPsA5g3y9TaIQdWQkgS21RcYHpulE19df3BTNBDi1k+JZVNiLw27bzXF5SNdm6GVPDDL6NJWRGKHn6KZaj850Jbxww0zWQWHHxxVZei5Qa1aVCnaYpaz+sa04SHpuTnTqY2VcgZftq9b1we5WfF4SKcTJxfOthrocno1g53oLCnYCkIoYFZfPFqEykD8zboOg7gplt9oiiHQH3bSk1OQGNzs2pxWwOt/CoMT7nGqkjZbZowniA4+HChhBXxdLFwxWt57lFk9zMaX9W2f711MZg/kKsl+KuceJs/QVMne34PBTS257Oqh+BGQ+kh/OaGvguf4TeqNrc4uwFOsI0eBrVnc92UIjaD6uJuWvxxcM83SpKxGdoC6PemIs33icispnbFc0kHB2OdQBEbGP/lzuEY9CPyQUBO/wmFPK/OuSV0wMtNDK04vSLCIHeTwrDhWWyo97bm16LZkZ+HhcwAfoRKKAJcgaGJK3n7ofi77m2T2/hEkbHYqNqQolYrjiQrGfpBMySJo2z+Sy3zw8=

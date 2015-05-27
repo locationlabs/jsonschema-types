@@ -1,0 +1,12 @@
+{
+    "id": "http://x.y.z/record",
+    "properties": {
+	"name": {
+	    "$ref": "http://x.y.z/foo/name"
+	},
+	"address": {
+	    "$ref": "http://x.y.z/bar/address"
+	}
+    },
+    "required": ["name", "address"]
+}
