@@ -1,14 +1,18 @@
 {
     "id": "http://x.y.z/foo/name",
+    "description": "A name",
     "properties": {
 	"first": {
-	    "type": "string"
+	    "type": "string",
+	    "description": "first name"
 	},
 	"middle": {
-	    "type": "string"
+	    "type": "string",
+	    "description": "middle mame"
 	},
 	"last": {
-	    "type": "string"
+	    "type": "string",
+	    "description": "last name"
 	}
     },
     "required": ["first", "last"]

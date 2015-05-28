@@ -94,11 +94,15 @@ class Registry(dict):
         """
         return TypeFactory(self).make_class(schema_id)
 
-    def configure_imports(self, basename="generated"):
+    def configure_imports(self, basename="generated", keep_uri_parts=None):
         """
         Register an import handler that automatically creates classes.
         """
-        sys.meta_path.append(TypeFactory(self, basename=basename))
+        sys.meta_path.append(TypeFactory(
+            registry=self,
+            basename=basename,
+            keep_uri_parts=keep_uri_parts,
+        ))
 
     def find_unresolved(self):
         """
@@ -117,7 +121,8 @@ class Registry(dict):
 
         Schemas must define an `id` attribute.
         """
-        schema_id = schema["id"]
+        ID = u"id"
+        schema_id = schema[ID]
         self[schema_id] = schema
         return schema_id
 
@@ -134,7 +139,7 @@ class Registry(dict):
         """
         Iterate through all refs in a schema.
         """
-        REF = "$ref"
+        REF = u"$ref"
         if REF in schema:
             yield schema[REF]
         for property_ in schema.get("properties", {}).values():

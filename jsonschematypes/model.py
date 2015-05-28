@@ -7,8 +7,16 @@ class Attribute(object):
     """
     Descriptor for attribute references into a dictionary.
     """
-    def __init__(self, key):
+    def __init__(self, key, description=None, required=False):
         self.key = key
+        self.description = description
+        self.required = required
+
+        if description:
+            self.__doc__ = "{} ({})".format(
+                description,
+                "required" if required else "optional",
+            )
 
     def __get__(self, instance, owner):
         if instance is None:
