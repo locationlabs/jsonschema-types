@@ -11,6 +11,9 @@ from jsonschema.compat import urlsplit
 from jsonschematypes.model import Attribute, SchemaAware
 
 
+if sys.version > '3':
+    long = int
+
 BASES = {
     "array": list,
     "boolean": bool,
