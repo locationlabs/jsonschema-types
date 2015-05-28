@@ -109,6 +109,45 @@ def test_package_names():
     )
 
 
+def test_illegal_package_name():
+    """
+    Illegal package names are detected.
+    """
+    registry = Registry()
+    factory = TypeFactory(registry, basename="test")
+
+    assert_that(
+        calling(factory.package_name_for).with_args("foo/1.0/bar"),
+        raises(ValueError),
+    )
+    assert_that(
+        calling(factory.package_name_for).with_args("_foo/bar"),
+        raises(ValueError),
+    )
+
+
+def test_keep_part_of_package_name():
+    """
+    URI withs otherwise illegal package names can be truncated to form legal ones
+    by keeping only part of the URI.
+    """
+    registry = Registry()
+    factory = TypeFactory(registry, basename="test", keep_uri_parts=2)
+
+    assert_that(
+        factory.package_name_for("foo/bar"),
+        is_(equal_to("test.foo"))
+    )
+    assert_that(
+        factory.package_name_for("foo/bar/baz"),
+        is_(equal_to("test.bar"))
+    )
+    assert_that(
+        factory.package_name_for("foo/1.0/bar/baz"),
+        is_(equal_to("test.bar"))
+    )
+
+
 def test_class_names():
     """
     Class name generation from URI works as expected.
@@ -133,8 +172,20 @@ def test_class_names():
         is_(equal_to("Foo"))
     )
     assert_that(
+        factory.class_name_for("foo.json"),
+        is_(equal_to("Foo"))
+    )
+    assert_that(
         factory.class_name_for("foo/bar"),
         is_(equal_to("Bar"))
+    )
+    assert_that(
+        factory.class_name_for("foo/bar.schema"),
+        is_(equal_to("Bar"))
+    )
+    assert_that(
+        factory.class_name_for("FooBar"),
+        is_(equal_to("FooBar"))
     )
 
 

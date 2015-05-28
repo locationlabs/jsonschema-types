@@ -94,11 +94,15 @@ class Registry(dict):
         """
         return TypeFactory(self).make_class(schema_id)
 
-    def configure_imports(self, basename="generated"):
+    def configure_imports(self, basename="generated", keep_uri_parts=None):
         """
         Register an import handler that automatically creates classes.
         """
-        sys.meta_path.append(TypeFactory(self, basename=basename))
+        sys.meta_path.append(TypeFactory(
+            registry=self,
+            basename=basename,
+            keep_uri_parts=keep_uri_parts,
+        ))
 
     def find_unresolved(self):
         """
