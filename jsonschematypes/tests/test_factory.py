@@ -18,7 +18,7 @@ from jsonschematypes.tests.fixtures import NAME, NAME_ID, schema_for
 
 def test_create_class():
     """
-    Can create a class for a schema.
+    Can create a class for an object schema.
     """
     registry = Registry()
     registry.load(schema_for("data/name.json"))
@@ -37,8 +37,52 @@ def test_create_class():
             last=equal_to("Washington"),
         )
     )
-    assert_that(name.to_dict(), is_(equal_to(NAME)))
-    assert_that(name, is_(equal_to(Name.from_dict(NAME))))
+    assert_that(name, is_(equal_to(NAME)))
+    assert_that(name, is_(equal_to(Name(**NAME))))
+    assert_that(Name.loads(name.dumps()), is_(equal_to(name)))
+
+
+def test_create_enum():
+    """
+    Can create a class for an enum schema
+    """
+    registry = Registry()
+    registry["id"] = {
+        "type": "string",
+        "enum": ["Foo", "Bar"],
+    }
+
+    Enum = registry.create_class("id")
+
+    enum = Enum("Foo")
+    enum.validate()
+
+    assert_that(calling(Enum("").validate), raises(ValidationError))
+
+    assert_that(Enum.loads(enum.dumps()), is_(equal_to(enum)))
+    assert_that(enum.dumps(), is_(equal_to(('"Foo"'))))
+
+
+def test_create_array():
+    """
+    Can create a class for an array schema
+    """
+    registry = Registry()
+    registry["id"] = {
+        "type": "array",
+        "items": {"type": "integer"}
+    }
+
+    Array = registry.create_class("id")
+
+    array = Array([1, 2])
+    array.validate()
+
+    assert_that(calling(Array("foo").validate), raises(ValidationError))
+    assert_that(calling(Array([1.0, 2.0]).validate), raises(ValidationError))
+
+    assert_that(Array.loads(array.dumps()), is_(equal_to(array)))
+    assert_that(array.dumps(), is_(equal_to(('[1, 2]'))))
 
 
 def test_validate_created_class():

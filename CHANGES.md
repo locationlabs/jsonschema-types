@@ -1,4 +1,7 @@
 
+Version 0.3:
+ - Support `string`, `integer`, `number`, `boolean`, and `array` base types.
+
 Version 0.2:
  - Add doc strings to generated types
  - Detect illegal names during package name conversion.

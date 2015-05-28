@@ -80,13 +80,12 @@ schemas:
         )
         address.validate()
         
-        import json
-        print json.dumps(address)
+        print address.dumps()
 
 
 ## Caveats
 
- -  Schemas **MUST** define an `id` and **SHOULD** define `properties`
+ -  Schemas **MUST** define an `id` and **SHOULD** define `properties` and `type`
  -  Support for `anyOf`, `oneOf`, and `allOf` is accidental at best.
 
 ## Related Work

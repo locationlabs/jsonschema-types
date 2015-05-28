@@ -1,6 +1,7 @@
 """
 Model generation based on JSON schema definitions.
 """
+import json
 
 
 class Attribute(object):
@@ -42,9 +43,9 @@ class Attribute(object):
             ))
 
 
-class SchemaDict(dict):
+class SchemaAware(object):
     """
-    Schema and registry-aware dictionary.
+    Schema and registry-aware mixin.
     """
     def validate(self, skip_http=True):
         """
@@ -53,20 +54,21 @@ class SchemaDict(dict):
         See `Registry.validate()`.
         """
         self.__class__._REGISTRY.validate(
-            self.to_dict(),
+            self,
             self.__class__._ID,
             skip_http=skip_http,
         )
 
-    def to_dict(self):
-        """
-        Convert to a dictionary.
-        """
-        return self
+    def dump(self, fileobj):
+        return json.dump(self, fileobj)
+
+    def dumps(self):
+        return json.dumps(self)
 
     @classmethod
-    def from_dict(cls, dct):
-        """
-        Construct instance from a dictionary.
-        """
-        return cls(dct)
+    def loads(cls, data):
+        return cls(json.loads(data))
+
+    @classmethod
+    def load(cls, fileobj):
+        return cls(json.load(fileobj))
