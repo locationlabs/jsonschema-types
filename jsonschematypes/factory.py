@@ -8,7 +8,20 @@ import sys
 from inflection import camelize, underscore
 from jsonschema.compat import urlsplit
 
-from jsonschematypes.model import Attribute, SchemaDict
+from jsonschematypes.model import Attribute, SchemaAware
+
+
+if sys.version > '3':
+    long = int
+
+BASES = {
+    "array": list,
+    "boolean": bool,
+    "integer": long,
+    "number": float,
+    "object": dict,
+    "string": str,
+}
 
 
 class TypeFactory(object):
@@ -100,7 +113,7 @@ class TypeFactory(object):
         """
         return str(underscore(property_name))
 
-    def make_class(self, schema_id, bases=(SchemaDict,)):
+    def make_class(self, schema_id, bases=()):
         """
         Create a Python class that maps to the given schema.
 
@@ -109,8 +122,12 @@ class TypeFactory(object):
         DESCRIPTION = u"description"
         PROPERTIES = u"properties"
         REQUIRED = u"required"
+        TYPE = u"type"
 
         schema = self.registry[schema_id]
+
+        base = BASES.get(schema.get(TYPE), dict)
+        bases = (SchemaAware, base) + bases
 
         class_name = self.class_name_for(schema_id)
 
