@@ -8,7 +8,9 @@ from jsonschema.compat import urlsplit
 
 from jsonschematypes.model import (
     Attribute,
-    SchemaAware,
+    SchemaAwareDict,
+    SchemaAwareList,
+    SchemaAwareString,
     DEFAULT,
     DESCRIPTION,
     PROPERTIES,
@@ -28,13 +30,21 @@ class TypeFactory(object):
     `TypeFactory` also implements module loader/finder abstractions
     for fancy imports.
     """
-    BASES = {
-        "array": list,
+    PRIMITIVE_BASES = {
+        # There's hopefully no good reason to define a custom boolean type
+        # (e.g. with enumerated values) because the only legal values are
+        # True and False *AND* Python doesn't let you extend boolean.
+        #
+        # See: https://mail.python.org/pipermail/python-dev/2002-March/020822.html
         "boolean": bool,
+        # There are arguments for custom long and float types, but YAGNI.
         "integer": long,
         "number": float,
-        "object": dict,
-        "string": str,
+    }
+    SCHEMA_AWARE_BASES = {
+        "array": SchemaAwareList,
+        "object": SchemaAwareDict,
+        "string": SchemaAwareString,
     }
 
     def __init__(self, registry):
@@ -66,8 +76,14 @@ class TypeFactory(object):
 
         schema = self.registry[schema_id]
 
-        base = TypeFactory.BASES.get(schema.get(TYPE), dict)
-        bases = (SchemaAware, base) + extra_bases
+        schema_type = schema.get(TYPE, "object")
+
+        if schema_type in TypeFactory.PRIMITIVE_BASES:
+            # no type generation
+            return TypeFactory.PRIMITIVE_BASES.get(schema_type)
+
+        base = TypeFactory.SCHEMA_AWARE_BASES[schema_type]
+        bases = (base, ) + extra_bases
 
         class_name = self.class_name_for(schema_id)
 
@@ -94,5 +110,6 @@ class TypeFactory(object):
             for property_name, property_ in schema.get(PROPERTIES, {}).items()
         })
         cls = type(class_name, bases, attributes)
+
         self.classes[schema_id] = cls
         return cls

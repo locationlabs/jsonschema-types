@@ -1,6 +1,8 @@
 """
 Code generation and import tests.
 """
+import sys
+
 from hamcrest import (
     assert_that,
     calling,
@@ -14,6 +16,10 @@ from jsonschema import ValidationError
 
 from jsonschematypes.registry import Registry
 from jsonschematypes.tests.fixtures import NAME, NAME_ID, schema_for
+
+
+if sys.version > '3':
+    long = int
 
 
 def test_class_names():
@@ -76,7 +82,7 @@ def test_attribute_names():
     )
 
 
-def test_create_object():
+def test_object():
     """
     Can create a class for an object schema.
     """
@@ -111,7 +117,7 @@ def test_create_object():
     assert_that(calling(name.validate), raises(ValidationError))
 
 
-def test_create_enum():
+def test_enum():
     """
     Can create a class for an enum schema
     """
@@ -133,7 +139,7 @@ def test_create_enum():
     assert_that(enum.dumps(), is_(equal_to(('"Foo"'))))
 
 
-def test_create_array():
+def test_array():
     """
     Can create a class for an array schema
     """
@@ -154,6 +160,48 @@ def test_create_array():
 
     assert_that(Array.loads(array.dumps()), is_(equal_to(array)))
     assert_that(array.dumps(), is_(equal_to(('[1, 2]'))))
+
+
+def test_boolean():
+    """
+    Boolean type handling does nothing special.
+    """
+    registry = Registry()
+    registry.register({
+        "id": "id",
+        "type": "boolean",
+    })
+
+    Boolean = registry.create_class("id")
+    assert_that(Boolean, is_(equal_to(bool)))
+
+
+def test_integer():
+    """
+    Integer type handling does nothing special.
+    """
+    registry = Registry()
+    registry.register({
+        "id": "id",
+        "type": "integer",
+    })
+
+    Integer = registry.create_class("id")
+    assert_that(Integer, is_(equal_to(long)))
+
+
+def test_number():
+    """
+    Number type handling does nothing special.
+    """
+    registry = Registry()
+    registry.register({
+        "id": "id",
+        "type": "number",
+    })
+
+    Number = registry.create_class("id")
+    assert_that(Number, is_(equal_to(float)))
 
 
 def test_create_nested():
@@ -212,8 +260,7 @@ def test_create_nested_definition():
     assert_that(bar.foo, is_(instance_of(Foo)))
 
 
-# XXX currently fails
-def dont_test_create_nested_array():
+def test_create_nested_array():
     """
     Can create nested types within an array.
     """
@@ -234,5 +281,5 @@ def dont_test_create_nested_array():
     bar = Bar.loads('[{}, {}]')
     bar.validate()
 
-    # Foo = registry.create_class("foo")
-    # assert_that(bar[0], is_(instance_of(Foo)))
+    Foo = registry.create_class("foo")
+    assert_that(bar[0], is_(instance_of(Foo)))

@@ -8,6 +8,7 @@ ID = u"id"
 DEFAULT = u"default"
 DEFINITIONS = u"definitions"
 DESCRIPTION = u"description"
+ITEMS = u"items"
 PROPERTIES = u"properties"
 REF = u"$ref"
 REQUIRED = u"required"
@@ -89,13 +90,6 @@ class SchemaAware(object):
     JSON primitives (e.g. dict, list, float) so that existing JSON libraries
     "just work".
     """
-    def __init__(self, *args, **kwargs):
-        super(SchemaAware, self).__init__(*args, **kwargs)
-        for key, value in vars(self.__class__).items():
-            if isinstance(value, Attribute):
-                if value.default is not None and not hasattr(self, key):
-                    setattr(self, key, value.default)
-
     def validate(self, skip_http=True):
         """
         Validate that this instance matches its schema.
@@ -121,3 +115,45 @@ class SchemaAware(object):
     @classmethod
     def load(cls, fileobj):
         return cls(json.load(fileobj))
+
+
+class SchemaAwareDict(dict, SchemaAware):
+    """
+    Schema aware dictionary type.
+
+    Sets defaults based on attributes.
+    """
+    def __init__(self, *args, **kwargs):
+        super(SchemaAwareDict, self).__init__(*args, **kwargs)
+        for key, value in vars(self.__class__).items():
+            if isinstance(value, Attribute):
+                if value.default is not None and not hasattr(self, key):
+                    setattr(self, key, value.default)
+
+
+class SchemaAwareList(list, SchemaAware):
+    """
+    Schema aware list type.
+    """
+    def __getitem__(self, index):
+        value = super(SchemaAwareList, self).__getitem__(index)
+        ref = self._SCHEMA.get(ITEMS, {}).get(REF)
+        if ref:
+            ref = self._REGISTRY.expand_ref(self._SCHEMA, ref)
+            try:
+                cls = self._REGISTRY.create_class(ref)
+            except KeyError:
+                # unable to resolve ref; fall through
+                pass
+            else:
+                return cls(value)
+        return value
+
+
+class SchemaAwareString(str, SchemaAware):
+    """
+    Schema aware string type.
+
+    Especially useful for enumeration validation.
+    """
+    pass
