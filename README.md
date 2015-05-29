@@ -88,10 +88,10 @@ schemas:
  -  Schemas **MUST** define an `id`. Class generation depends on the `id` value to
     generate class names and resolve references from other types.
 
- -  Schemas **SHOULD** define `type`.
+ -  Schemas **SHOULD** define `type`. Otherwise, "object" is assumed.
 
- -  Object schemas that want generated classes for `properties` **MUST* use `$ref`
-    instead of defining inline types.
+ -  Classes are only generated for subordinate types that have `$ref` and where `$ref`
+    can be resolved to a definition with an `id`.
 
     That is, this schema will generate types for both "foo" and "bar":
 
@@ -129,8 +129,8 @@ type generation for JSON Schema. `jsonschema-types` makes a few decisions differ
     be called explicitly. There are many testing scenarios where it useful to be able to
     generate invalid data.
 
- -  Similar to `Warlock`, generated types are backed by a Python dictionary. Unlike `Warlock`,
-    generated types use the [descriptor]( https://docs.python.org/2/howto/descriptor.html)
+ -  Similar to `Warlock`, generated types are backed by Python primitives (e.g. `dict` or `list`)
+    Unlike `Warlock`, generated object types use the [descriptor]( https://docs.python.org/2/howto/descriptor.html)
     protocol to map between attributes and dictionary keys and maps other naming conventions
     (e.g. "fooBar") to more Pythonic ones (e.g. "foo_bar").
 

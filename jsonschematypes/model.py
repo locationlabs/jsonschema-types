@@ -46,17 +46,9 @@ class Attribute(object):
             if isinstance(value, SchemaAware):
                 return value
 
-            ref = self.get_ref(instance)
-            if ref:
-                try:
-                    cls = self.registry.create_class(ref)
-                except KeyError:
-                    # unable to resolve ref; fall through
-                    pass
-                else:
-                    return cls(value)
-
-            return value
+            ref = instance._SCHEMA.get(PROPERTIES, {}).get(self.key, {}).get(REF)
+            ref_class = instance._REGISTRY.create_class_for(instance._SCHEMA, ref)
+            return ref_class(value) if ref_class else value
         except KeyError:
             raise AttributeError("'{}' object has no attribute '{}'".format(
                 instance.__class__.__name__,
@@ -74,12 +66,6 @@ class Attribute(object):
                 instance.__class__.__name__,
                 self.key,
             ))
-
-    def get_ref(self, instance):
-        ref = instance._SCHEMA.get(PROPERTIES, {}).get(self.key, {}).get(REF)
-        if not ref:
-            return ref
-        return self.registry.expand_ref(instance._SCHEMA, ref)
 
 
 class SchemaAware(object):
@@ -124,6 +110,9 @@ class SchemaAwareDict(dict, SchemaAware):
     Sets defaults based on attributes.
     """
     def __init__(self, *args, **kwargs):
+        """
+        Insert defaults into dictionary.
+        """
         super(SchemaAwareDict, self).__init__(*args, **kwargs)
         for key, value in vars(self.__class__).items():
             if isinstance(value, Attribute):
@@ -136,18 +125,17 @@ class SchemaAwareList(list, SchemaAware):
     Schema aware list type.
     """
     def __getitem__(self, index):
+        """
+        Override item access to convert types.
+        """
         value = super(SchemaAwareList, self).__getitem__(index)
+
+        if isinstance(value, SchemaAware):
+            return value
+
         ref = self._SCHEMA.get(ITEMS, {}).get(REF)
-        if ref:
-            ref = self._REGISTRY.expand_ref(self._SCHEMA, ref)
-            try:
-                cls = self._REGISTRY.create_class(ref)
-            except KeyError:
-                # unable to resolve ref; fall through
-                pass
-            else:
-                return cls(value)
-        return value
+        ref_class = self._REGISTRY.create_class_for(self._SCHEMA, ref)
+        return ref_class(value) if ref_class else value
 
 
 class SchemaAwareString(str, SchemaAware):

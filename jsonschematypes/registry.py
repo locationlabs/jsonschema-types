@@ -83,6 +83,16 @@ class Registry(dict):
         """
         return self.factory.make_class(schema_id)
 
+    def create_class_for(self, schema, ref):
+        if ref is None:
+            return None
+
+        try:
+            return self.create_class(self.expand_ref(schema, ref))
+        except KeyError:
+            # unable to resolve ref; fall through
+            return None
+
     def configure_imports(self, basename="generated", keep_uri_parts=None):
         """
         Register an import handler that automatically creates classes.
@@ -117,6 +127,9 @@ class Registry(dict):
         return schema_id
 
     def expand_ref(self, schema, ref):
+        """
+        Expand refs to internal definitions.
+        """
         if ref is None:
             return ref
 

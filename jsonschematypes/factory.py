@@ -78,8 +78,8 @@ class TypeFactory(object):
 
         schema_type = schema.get(TYPE, "object")
 
+        # skip type generation for primitives
         if schema_type in TypeFactory.PRIMITIVE_BASES:
-            # no type generation
             return TypeFactory.PRIMITIVE_BASES.get(schema_type)
 
         base = TypeFactory.SCHEMA_AWARE_BASES[schema_type]
@@ -87,7 +87,7 @@ class TypeFactory(object):
 
         class_name = self.class_name_for(schema_id)
 
-        # save schema id and registry instance within the class definition
+        # save backref and metadata within the class definition
         attributes = dict(
             _ID=schema_id,
             _REGISTRY=self.registry,
@@ -99,17 +99,19 @@ class TypeFactory(object):
             attributes["__doc__"] = schema[DESCRIPTION]
 
         # inject attributes for each property
-        attributes.update({
-            self.attribute_name_for(property_name): Attribute(
-                registry=self.registry,
-                key=property_name,
-                description=property_.get(DESCRIPTION),
-                required=property_name in schema.get(REQUIRED, []),
-                default=property_.get(DEFAULT),
-            )
-            for property_name, property_ in schema.get(PROPERTIES, {}).items()
-        })
-        cls = type(class_name, bases, attributes)
+        if schema_type == "object":
+            attributes.update({
+                self.attribute_name_for(property_name): Attribute(
+                    registry=self.registry,
+                    key=property_name,
+                    description=property_.get(DESCRIPTION),
+                    required=property_name in schema.get(REQUIRED, []),
+                    default=property_.get(DEFAULT),
+                )
+                for property_name, property_ in schema.get(PROPERTIES, {}).items()
+            })
 
+        # create the class
+        cls = type(class_name, bases, attributes)
         self.classes[schema_id] = cls
         return cls
