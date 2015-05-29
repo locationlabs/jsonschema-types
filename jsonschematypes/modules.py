@@ -6,9 +6,9 @@ Supports auto-generation of classes on import.
 from imp import new_module
 import re
 import sys
-from urlparse import urlsplit
 
 from inflection import underscore
+from jsonschema.compat import urlsplit
 
 
 class ModuleFinder(object):
