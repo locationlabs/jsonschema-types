@@ -1,4 +1,7 @@
 
+Version 0.4:
+ - Better handling of refs to other types within lists and dicts.
+
 Version 0.3:
  - Support `string`, `integer`, `number`, `boolean`, and `array` base types.
 
