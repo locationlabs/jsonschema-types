@@ -4,11 +4,22 @@ Model generation based on JSON schema definitions.
 import json
 
 
+ID = u"id"
+DEFAULT = u"default"
+DEFINITIONS = u"definitions"
+DESCRIPTION = u"description"
+PROPERTIES = u"properties"
+REF = u"$ref"
+REQUIRED = u"required"
+TYPE = u"type"
+
+
 class Attribute(object):
     """
     Descriptor for attribute references into a dictionary.
     """
-    def __init__(self, key, description=None, required=False, default=None):
+    def __init__(self, registry, key, description=None, required=False, default=None):
+        self.registry = registry
         self.key = key
         self.description = description
         self.required = required
@@ -21,10 +32,30 @@ class Attribute(object):
             )
 
     def __get__(self, instance, owner):
+        """
+        Attribute-based access to underlying JSON data.
+
+        Converts between Pythonic types and naming conventions and underlying raw data.
+        """
         if instance is None:
             return self
         try:
-            return instance[self.key]
+            value = instance[self.key]
+
+            if isinstance(value, SchemaAware):
+                return value
+
+            ref = self.get_ref(instance)
+            if ref:
+                try:
+                    cls = self.registry.create_class(ref)
+                except KeyError:
+                    # unable to resolve ref; fall through
+                    pass
+                else:
+                    return cls(value)
+
+            return value
         except KeyError:
             raise AttributeError("'{}' object has no attribute '{}'".format(
                 instance.__class__.__name__,
@@ -43,10 +74,20 @@ class Attribute(object):
                 self.key,
             ))
 
+    def get_ref(self, instance):
+        ref = instance._SCHEMA.get(PROPERTIES, {}).get(self.key, {}).get(REF)
+        if not ref:
+            return ref
+        return self.registry.expand_ref(instance._SCHEMA, ref)
+
 
 class SchemaAware(object):
     """
     Schema and registry-aware mixin.
+
+    Generated classes mix-in SchemaAware with the Python representations of
+    JSON primitives (e.g. dict, list, float) so that existing JSON libraries
+    "just work".
     """
     def __init__(self, *args, **kwargs):
         super(SchemaAware, self).__init__(*args, **kwargs)

@@ -85,7 +85,38 @@ schemas:
 
 ## Caveats
 
- -  Schemas **MUST** define an `id` and **SHOULD** define `properties` and `type`
+ -  Schemas **MUST** define an `id`. Class generation depends on the `id` value to
+    generate class names and resolve references from other types.
+
+ -  Schemas **SHOULD** define `type`.
+
+ -  Object schemas that want generated classes for `properties` **MUST* use `$ref`
+    instead of defining inline types.
+
+    That is, this schema will generate types for both "foo" and "bar":
+
+        {
+          "id": "foo",
+          "type": "object",
+          "properties": {
+              "bar": { "$ref": "#/definitions/bar" }
+          },
+          "defintions": {
+              "bar": { "id": "bar", "type": "object" }
+          }
+        }
+        
+     Whereas, this schema will generate a type for "foo" and treat "bar" as
+     a dictionary:
+
+        {
+          "id": "foo",
+          "type": "object",
+          "properties": {
+              "bar": { "type": "object" }
+          }
+        }
+
  -  Support for `anyOf`, `oneOf`, and `allOf` is accidental at best.
 
 ## Related Work

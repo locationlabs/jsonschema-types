@@ -6,6 +6,7 @@ from hamcrest import (
     calling,
     equal_to,
     has_properties,
+    instance_of,
     is_,
     raises,
 )
@@ -115,10 +116,11 @@ def test_create_enum():
     Can create a class for an enum schema
     """
     registry = Registry()
-    registry["id"] = {
+    registry.register({
+        "id": "id",
         "type": "string",
         "enum": ["Foo", "Bar"],
-    }
+    })
 
     Enum = registry.create_class("id")
 
@@ -136,10 +138,11 @@ def test_create_array():
     Can create a class for an array schema
     """
     registry = Registry()
-    registry["id"] = {
+    registry.register({
+        "id": "id",
         "type": "array",
         "items": {"type": "integer"}
-    }
+    })
 
     Array = registry.create_class("id")
 
@@ -151,3 +154,85 @@ def test_create_array():
 
     assert_that(Array.loads(array.dumps()), is_(equal_to(array)))
     assert_that(array.dumps(), is_(equal_to(('[1, 2]'))))
+
+
+def test_create_nested():
+    """
+    Can create nested types.
+    """
+    registry = Registry()
+    registry.register({
+        "id": "foo",
+        "type": "object"
+    })
+    registry.register({
+        "id": "bar",
+        "type": "object",
+        "properties": {
+            "foo": {
+                "$ref": "foo"
+            }
+        }
+    })
+
+    Bar = registry.create_class("bar")
+    bar = Bar.loads('{"foo":{}}')
+    bar.validate()
+
+    Foo = registry.create_class("foo")
+    assert_that(bar.foo, is_(instance_of(Foo)))
+
+
+def test_create_nested_definition():
+    """
+    Can create nested types.
+    """
+    registry = Registry()
+    registry.register({
+        "id": "bar",
+        "type": "object",
+        "properties": {
+            "foo": {
+                "$ref": "#/definitions/foo"
+            }
+        },
+        "definitions": {
+            "foo": {
+                "id": "foo",
+                "type": "object"
+            }
+        }
+    })
+
+    Bar = registry.create_class("bar")
+    bar = Bar.loads('{"foo":{}}')
+    bar.validate()
+
+    Foo = registry.create_class("foo")
+    assert_that(bar.foo, is_(instance_of(Foo)))
+
+
+# XXX currently fails
+def dont_test_create_nested_array():
+    """
+    Can create nested types within an array.
+    """
+    registry = Registry()
+    registry.register({
+        "id": "foo",
+        "type": "object"
+    })
+    registry.register({
+        "id": "bar",
+        "type": "array",
+        "items": {
+            "$ref": "foo"
+        }
+    })
+
+    Bar = registry.create_class("bar")
+    bar = Bar.loads('[{}, {}]')
+    bar.validate()
+
+    # Foo = registry.create_class("foo")
+    # assert_that(bar[0], is_(instance_of(Foo)))

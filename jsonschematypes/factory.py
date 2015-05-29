@@ -6,20 +6,19 @@ import sys
 from inflection import camelize, underscore
 from jsonschema.compat import urlsplit
 
-from jsonschematypes.model import Attribute, SchemaAware
+from jsonschematypes.model import (
+    Attribute,
+    SchemaAware,
+    DEFAULT,
+    DESCRIPTION,
+    PROPERTIES,
+    REQUIRED,
+    TYPE,
+)
 
 
 if sys.version > '3':
     long = int
-
-BASES = {
-    "array": list,
-    "boolean": bool,
-    "integer": long,
-    "number": float,
-    "object": dict,
-    "string": str,
-}
 
 
 class TypeFactory(object):
@@ -28,10 +27,19 @@ class TypeFactory(object):
 
     `TypeFactory` also implements module loader/finder abstractions
     for fancy imports.
-
     """
+    BASES = {
+        "array": list,
+        "boolean": bool,
+        "integer": long,
+        "number": float,
+        "object": dict,
+        "string": str,
+    }
+
     def __init__(self, registry):
         self.registry = registry
+        self.classes = {}
 
     def class_name_for(self, schema_id):
         """
@@ -47,22 +55,19 @@ class TypeFactory(object):
         """
         return str(underscore(property_name))
 
-    def make_class(self, schema_id, bases=()):
+    def make_class(self, schema_id, extra_bases=()):
         """
         Create a Python class that maps to the given schema.
 
-        :param bases: a tuple of bases; should be compatible with `SchemaDict`
+        :param extra_bases: extra bases to add to generated types
         """
-        DEFAULT = u"default"
-        DESCRIPTION = u"description"
-        PROPERTIES = u"properties"
-        REQUIRED = u"required"
-        TYPE = u"type"
+        if schema_id in self.classes:
+            return self.classes[schema_id]
 
         schema = self.registry[schema_id]
 
-        base = BASES.get(schema.get(TYPE), dict)
-        bases = (SchemaAware, base) + bases
+        base = TypeFactory.BASES.get(schema.get(TYPE), dict)
+        bases = (SchemaAware, base) + extra_bases
 
         class_name = self.class_name_for(schema_id)
 
@@ -70,20 +75,24 @@ class TypeFactory(object):
         attributes = dict(
             _ID=schema_id,
             _REGISTRY=self.registry,
+            _SCHEMA=schema,
         )
 
+        # include class level doc string if available
         if DESCRIPTION in schema:
             attributes["__doc__"] = schema[DESCRIPTION]
 
         # inject attributes for each property
         attributes.update({
             self.attribute_name_for(property_name): Attribute(
-                property_name,
+                registry=self.registry,
+                key=property_name,
                 description=property_.get(DESCRIPTION),
                 required=property_name in schema.get(REQUIRED, []),
                 default=property_.get(DEFAULT),
             )
             for property_name, property_ in schema.get(PROPERTIES, {}).items()
         })
-
-        return type(class_name, bases, attributes)
+        cls = type(class_name, bases, attributes)
+        self.classes[schema_id] = cls
+        return cls

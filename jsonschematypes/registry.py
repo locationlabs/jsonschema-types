@@ -7,6 +7,7 @@ from jsonschema import RefResolver, RefResolutionError, validate
 
 from jsonschematypes.factory import TypeFactory
 from jsonschematypes.files import iter_gzip, iter_tar, iter_schemas
+from jsonschematypes.model import DEFINITIONS, ID, REF
 from jsonschematypes.modules import ModuleFinder
 
 
@@ -14,7 +15,6 @@ def iter_schema_refs(schema):
     """
     Iterate through all refs in a schema.
     """
-    REF = u"$ref"
     if REF in schema:
         yield schema[REF]
     for property_ in schema.get("properties", {}).values():
@@ -101,7 +101,7 @@ class Registry(dict):
             ref
             for schema in self.values()
             for ref in iter_schema_refs(schema)
-            if ref not in self
+            if self.expand_ref(schema, ref) not in self
         }
 
     def register(self, schema):
@@ -110,7 +110,18 @@ class Registry(dict):
 
         Schemas must define an `id` attribute.
         """
-        ID = u"id"
         schema_id = schema[ID]
         self[schema_id] = schema
+        for definition in schema.get(DEFINITIONS, {}).values():
+            self.register(definition)
         return schema_id
+
+    def expand_ref(self, schema, ref):
+        if ref is None:
+            return ref
+
+        if ref.startswith("#/definitions/"):
+            definition = ref.split("#/definitions/", 1)[1]
+            return schema.get(DEFINITIONS, {}).get(definition, {}).get(ID, ref)
+
+        return ref
