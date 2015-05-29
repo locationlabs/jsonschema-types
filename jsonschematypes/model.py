@@ -8,10 +8,11 @@ class Attribute(object):
     """
     Descriptor for attribute references into a dictionary.
     """
-    def __init__(self, key, description=None, required=False):
+    def __init__(self, key, description=None, required=False, default=None):
         self.key = key
         self.description = description
         self.required = required
+        self.default = default
 
         if description:
             self.__doc__ = "{} ({})".format(
@@ -47,6 +48,13 @@ class SchemaAware(object):
     """
     Schema and registry-aware mixin.
     """
+    def __init__(self, *args, **kwargs):
+        super(SchemaAware, self).__init__(*args, **kwargs)
+        for key, value in vars(self.__class__).items():
+            if isinstance(value, Attribute):
+                if value.default is not None and not hasattr(self, key):
+                    setattr(self, key, value.default)
+
     def validate(self, skip_http=True):
         """
         Validate that this instance matches its schema.
