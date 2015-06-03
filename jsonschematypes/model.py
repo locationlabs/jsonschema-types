@@ -13,6 +13,7 @@ PROPERTIES = u"properties"
 REF = u"$ref"
 REQUIRED = u"required"
 TYPE = u"type"
+ARRAY = u"array"
 
 
 class Attribute(object):
