@@ -1,4 +1,7 @@
 
+Version 0.5:
+ - Better handling of refs in arrays.
+
 Version 0.4:
  - Better handling of refs to other types within lists and dicts.
 
