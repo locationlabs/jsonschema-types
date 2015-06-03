@@ -20,8 +20,9 @@ def iter_schema_refs(schema):
     for property_ in schema.get("properties", {}).values():
         if REF in property_:
             yield property_[REF]
-        elif TYPE in property_ and property_.get(TYPE) == ARRAY and REF in property_.get(ITEMS, {}):
+        elif property_.get(TYPE) == ARRAY and REF in property_.get(ITEMS, {}):
             yield property_.get(ITEMS, {})[REF]
+
 
 def do_not_resolve(uri):
     raise RefResolutionError(uri)
