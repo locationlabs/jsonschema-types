@@ -7,7 +7,7 @@ from jsonschema import RefResolver, RefResolutionError, validate
 
 from jsonschematypes.factory import TypeFactory
 from jsonschematypes.files import iter_gzip, iter_tar, iter_schemas
-from jsonschematypes.model import DEFINITIONS, ID, REF
+from jsonschematypes.model import ARRAY, DEFINITIONS, ID, ITEMS, REF, TYPE
 from jsonschematypes.modules import ModuleFinder
 
 
@@ -20,7 +20,8 @@ def iter_schema_refs(schema):
     for property_ in schema.get("properties", {}).values():
         if REF in property_:
             yield property_[REF]
-
+        elif TYPE in property_ and property_.get(TYPE) == ARRAY and REF in property_.get(ITEMS, {}):
+            yield property_.get(ITEMS, {})[REF]
 
 def do_not_resolve(uri):
     raise RefResolutionError(uri)
