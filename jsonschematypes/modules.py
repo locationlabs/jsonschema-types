@@ -57,26 +57,29 @@ class ModuleLoader(object):
         """
         Load module matching full name.
         """
-        matching_classes = {
-            schema_id: self.factory.make_class(schema_id)
+        matching_schemas = {
+            schema_id
             for schema_id in self.factory.registry
             if self.package_name_for(schema_id).startswith(fullname)
         }
 
-        if not matching_classes:
+        if not matching_schemas:
             # no classes have this module as a parent
             raise ImportError(fullname)
 
         module = self.make_module(fullname)
 
-        for schema_id, matching_class in matching_classes.items():
+        for schema_id in matching_schemas:
             if self.package_name_for(schema_id) != fullname:
                 # class belongs to a different module
                 continue
 
+            matching_class = self.factory.make_class(schema_id)
+
             class_name = matching_class.__name__
             if not hasattr(module, class_name):
                 setattr(module, class_name, matching_class)
+                setattr(matching_class, "__module__", module)
 
         return module
 

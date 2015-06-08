@@ -1,4 +1,7 @@
 
+Version 0.6:
+ - Ensure that generated classes have `__module__` set correctly.
+
 Version 0.5:
  - Better handling of refs in arrays.
 
